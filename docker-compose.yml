@@ -1,0 +1,53 @@
+version: "3.7"
+services:
+  app:
+    build:
+      args:
+        user: userdocker
+        uid: 65
+      context: .
+      dockerfile: dockerfile
+    image: webitp/devops_exam:latest
+    container_name: web-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./web:/var/www
+    networks:
+      - web
+
+  db:
+    image: mysql:5.7
+    container_name: web-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: devops
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_PASSWORD: 123456
+      MYSQL_USER: mainroot
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - mydbdata:/var/lib/mysql
+      - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - web
+
+  nginx:
+    image: nginx:alpine
+    container_name: web-nginx
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - ./web/:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
+    
+volumes:
+  mydbdata:
